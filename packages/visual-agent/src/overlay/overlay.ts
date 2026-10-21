@@ -16,7 +16,24 @@ type OverlayConfig = {
     component: string;
     loop: string;
   };
+  /** HMR event names used to talk to the dev server. */
+  events: {
+    selection: string;
+    ack: string;
+  };
 };
+
+/** The slice of Vite's HMR client the overlay uses. */
+type HotContext = {
+  send(event: string, data: unknown): void;
+  on(event: string, handler: (payload: unknown) => void): void;
+};
+
+declare global {
+  interface ImportMeta {
+    hot?: HotContext;
+  }
+}
 
 type ParsedSource = {
   file: string;
@@ -210,8 +227,19 @@ export function startVisualAgent(config: OverlayConfig): void {
   layer.append(hoverBox, selectedBox, tagLabel, badge, panel);
   shadow.append(style, layer);
 
-  /** Replaced in the bridge milestone; selections stay local until then. */
-  const onSelect: (element: Element) => void = () => {};
+  const hot = import.meta.hot;
+  hot?.on(config.events.ack, (payload) => {
+    const ok = typeof payload === "object" && payload !== null && "ok" in payload
+      ? Boolean((payload as { ok: unknown }).ok)
+      : false;
+    if (!ok) console.warn("[visual-agent] dev server rejected the selection");
+  });
+
+  /** Push the selection to the dev server over Vite's existing HMR socket. */
+  function onSelect(element: Element): void {
+    if (!hot) return;
+    hot.send(config.events.selection, buildSelection(element));
+  }
 
   let enabled = false;
   let peeking = false;
@@ -322,6 +350,47 @@ export function startVisualAgent(config: OverlayConfig): void {
       <div class="hint">Esc clears · Alt+${config.hotkey.toUpperCase()} exits</div>
     `;
     panel.style.display = "block";
+  }
+
+  function buildSelection(element: Element): unknown {
+    const target = resolveTarget(element);
+    const stamp = target.stamped?.getAttribute(config.attrs.source) ?? null;
+    const parsed = parseSource(stamp);
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return {
+      selectedAt: new Date().toISOString(),
+      url: location.href,
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        dpr: window.devicePixelRatio,
+      },
+      darkMode: document.documentElement.classList.contains("dark"),
+      tagName: element.tagName.toLowerCase(),
+      source: parsed,
+      component: target.stamped?.getAttribute(config.attrs.component) ?? null,
+      inLoop: target.stamped?.getAttribute(config.attrs.loop) === "true",
+      classList: Array.from(element.classList),
+      // Page content: bounded here, labelled as untrusted by the MCP server.
+      text: (element.textContent ?? "").trim().slice(0, 400),
+      domPath: describeDomPath(element),
+      computedStyles: {
+        padding: style.padding,
+        margin: style.margin,
+        gap: style.gap,
+        fontSize: style.fontSize,
+        color: style.color,
+        backgroundColor: style.backgroundColor,
+        borderRadius: style.borderRadius,
+      },
+      bounds: {
+        x: Math.round(rect.left),
+        y: Math.round(rect.top),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+      },
+    };
   }
 
   function refresh(): void {

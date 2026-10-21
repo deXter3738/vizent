@@ -4,11 +4,14 @@ import { fileURLToPath } from "node:url";
 import type { Plugin } from "vite";
 import { stampSource } from "./stamp.js";
 import { resolveOptions, type VisualAgentOptions } from "./options.js";
+import { createBridge } from "./bridge.js";
 import {
+  ACK_EVENT,
   COMPONENT_ATTR,
   LOOP_ATTR,
   OVERLAY_VIRTUAL_ID,
   RESOLVED_OVERLAY_ID,
+  SELECTION_EVENT,
   SOURCE_ATTR,
 } from "../shared/constants.js";
 
@@ -65,8 +68,13 @@ export function visualAgent(userOptions: VisualAgentOptions = {}): Plugin {
       const overlayConfig = {
         hotkey: options.hotkey,
         attrs: { source: SOURCE_ATTR, component: COMPONENT_ATTR, loop: LOOP_ATTR },
+        events: { selection: SELECTION_EVENT, ack: ACK_EVENT },
       };
       return `${bundle}\nstartVisualAgent(${JSON.stringify(overlayConfig)});\n`;
+    },
+
+    configureServer(devServer) {
+      createBridge(devServer, { root, verbose: options.verbose });
     },
 
     transformIndexHtml() {
