@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "visual-agent": {
+      "command": "npx",
+      "args": ["visual-agent", "mcp"],
+      "env": {
+        "VISUAL_AGENT_ROOT": "examples/demo-react-app"
+      }
+    }
+  }
+}
