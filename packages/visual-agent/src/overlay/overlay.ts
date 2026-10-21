@@ -65,7 +65,8 @@ const STYLES = `
   border: 1px solid #6366f1;
   background: rgba(99, 102, 241, 0.12);
   border-radius: 2px;
-  transition: all 60ms linear;
+  /* No transition: animating left/top leaves the outline mid-flight between
+     the old and new element, which reads as a misdrawn box. */
   display: none;
 }
 .box.selected {

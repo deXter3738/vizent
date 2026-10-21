@@ -7,10 +7,19 @@ import type { SessionInfo } from "../shared/types.js";
 const ALLOWED_HOSTS = new Set(["127.0.0.1", "localhost", "::1"]);
 
 /**
- * Walk up from `startDir` looking for `.visual-agent/session.json`. Returns the
- * first one found, so running the MCP server anywhere inside a project works.
+ * Locate the running dev server's handshake file.
+ *
+ * Checks `VISUAL_AGENT_ROOT` first — useful in a monorepo, where the agent host
+ * starts in the repo root but the dev server runs in a sub-package — then walks
+ * up from `startDir`, so running the MCP server anywhere inside a project works.
  */
 export function findSession(startDir: string = process.cwd()): SessionInfo | null {
+  const override = process.env["VISUAL_AGENT_ROOT"];
+  if (override) {
+    const candidate = path.join(path.resolve(startDir, override), SESSION_DIR, SESSION_FILE);
+    return fs.existsSync(candidate) ? readSession(candidate) : null;
+  }
+
   let dir = path.resolve(startDir);
 
   for (;;) {
