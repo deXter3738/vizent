@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist/overlay",
+    "rootDir": "src/overlay",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": [],
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": ["src/overlay"]
+}
