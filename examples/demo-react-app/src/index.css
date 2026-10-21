@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand-50: oklch(0.97 0.02 265);
+  --color-brand-500: oklch(0.56 0.18 265);
+  --color-brand-600: oklch(0.49 0.19 265);
+  --color-brand-700: oklch(0.42 0.17 265);
+  --radius-card: 0.875rem;
+  --spacing-gutter: 1.25rem;
+}
