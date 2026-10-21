@@ -7,7 +7,8 @@ source code.
 > element maps to the correct source file and line, and that an MCP host such as
 > Claude Code can read that selection. Suggestions, the properties panel, the
 > design-system gallery and any code editing are **not** built yet. See
-> [`docs/PRD.md`](docs/PRD.md) for where this is going.
+> [`docs/PRD.md`](docs/PRD.md) for where this is going, and
+> [`docs/SPIKE-REPORT.md`](docs/SPIKE-REPORT.md) for what the spike measured.
 
 ## What works today
 
